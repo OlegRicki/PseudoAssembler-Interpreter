@@ -3,27 +3,27 @@
 int main(int argc, char *argv[])
 {
     try {
-        if      (argc == 2)
+        if      (argc == 3)
         {
-            inputFilePath = argv[0];
-            outputFilePathResult = QString(argv[1]) + "\\result.txt";
-            outputFilePathRam    = QString(argv[1]) + "\\RAM.txt";
-        }
-        else if (argc == 3 && QString(argv[0]) == "-d")
-        {
-            inputFilePath = argv[1];
+            inputFilePath        = argv[1];
             outputFilePathResult = QString(argv[2]) + "\\result.txt";
             outputFilePathRam    = QString(argv[2]) + "\\RAM.txt";
+        }
+        else if (argc == 4 && QString(argv[0]) == "-d")
+        {
+            inputFilePath        = argv[1];
+            outputFilePathResult = QString(argv[3]) + "\\result.txt";
+            outputFilePathRam    = QString(argv[3]) + "\\RAM.txt";
         }
         else
         {
             exception newException = {1, NULL};
-            throw newException;
+            throw     newException;
         }
 
         interpretateProgram(text, registers, ram);
         writeToFile(outputFilePathResult, registersToText(registers));
-        if (argc == 3)
+        if (argc == 4)
         {
             writeToFile(outputFilePathResult, ramToText(ram));
         }
