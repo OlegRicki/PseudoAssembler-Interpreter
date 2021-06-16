@@ -9,7 +9,7 @@ int main(int argc, char *argv[])
             outputFilePathResult = QString(argv[2]) + "\\result.txt";
             outputFilePathRam    = QString(argv[2]) + "\\RAM.txt";
         }
-        else if (argc == 4 && QString(argv[0]) == "-d")
+        else if (argc == 4 && QString(argv[1]) == "-d")
         {
             inputFilePath        = argv[1];
             outputFilePathResult = QString(argv[3]) + "\\result.txt";
@@ -21,6 +21,7 @@ int main(int argc, char *argv[])
             throw     newException;
         }
 
+        readFromFile(inputFilePath, text);
         interpretateProgram(text, registers, ram);
         writeToFile(outputFilePathResult, registersToText(registers));
         if (argc == 4)
