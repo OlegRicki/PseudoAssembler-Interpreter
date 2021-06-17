@@ -25,6 +25,7 @@ int main(int argc, char *argv[])
         readFromFile(inputFilePath, &text);
 
         initRam(&ram);
+        initRegisters(&registers);
         interpretateProgram(&text, &registers, &ram);
         writeToFile(outputFilePathResult, registersToText(registers));
         if (argc == 4)
@@ -67,14 +68,6 @@ int main(int argc, char *argv[])
     }
 
     return 0;
-}
-
-void initRam(QList<int8_t> * ram)
-{
-    for (int i = 0; i < 256; ++i)
-    {
-        ram->append(0);
-    }
 }
 
 void readFromFile(const QString filePath, QStringList * text)
@@ -313,7 +306,7 @@ END_STRING_PARSE:;
 QStringList registersToText(const QHash<QString, int8_t> registers)
 {
     QStringList registersText;
-    for (int i = 0; i < 8; ++i)
+    for (int i = 0; i < NUM_OF_REGISTERS; ++i)
     {
         QString curKey = "R" + QString::number(i);
         registersText.append(curKey + " = " + QString::number(registers[curKey]));
@@ -346,6 +339,19 @@ QStringList ramToText(const QList<int8_t> ram)
     return ramText;
 }
 
+void initRam(QList<int8_t> * ram)
+{
+    for (int i = 0; i < NUM_OF_RAM_CELLS; ++i)
+    {
+        ram->append(0);
+    }
+}
 
-
-
+void initRegisters(QHash<QString, int8_t> * registers)
+{
+    for (int i = 0; i < NUM_OF_REGISTERS; ++i)
+    {
+        QString curKey = "R" + QString::number(i);
+        registers->insert(curKey, 0);
+    }
+}
