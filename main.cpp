@@ -94,8 +94,7 @@ void writeToFile(const QString filePath, const QStringList text)
         QListIterator<QString> textIterator(text);
         while (textIterator.hasNext())
         {
-            QString tmp = textIterator.next();
-            file.write(tmp.toLocal8Bit());
+            file.write((textIterator.next() + "\n").toLocal8Bit());
         }
     }
     else
