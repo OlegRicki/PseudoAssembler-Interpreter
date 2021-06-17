@@ -80,7 +80,7 @@ void initRam(QList<int8_t> * ram)
 void readFromFile(const QString filePath, QStringList * text)
 {
     QFile file(filePath);
-    if (file.open(QIODevice::ReadOnly))
+    if (file.open(QIODevice::ReadOnly) /*&& filePath.endsWith(".txt")*/)
     {
         while (!file.atEnd())
         {
