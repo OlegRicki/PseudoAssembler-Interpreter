@@ -32,16 +32,16 @@ QList<int8_t> ram;
 QHash<QString, int8_t> registers;
 
 
-void readFromFile(QString filePath, QStringList text);
+void readFromFile(QString filePath, QStringList * text);
 
 
 void writeToFile(const QString filePath, const QStringList text);
 
 
-void parseAndValidateText(QStringList text, QList<QRegularExpressionMatch> execCommands, QHash<QString, int> labels);
+void parseAndValidateText(QStringList * text, QList<QRegularExpressionMatch> * execCommands, QHash<QString, int> * labels);
 
 
-void interpretateProgram(QStringList text, QHash<QString, int8_t> registers, QList<int8_t> ram);
+void interpretateProgram(QStringList * text, QHash<QString, int8_t> * registers, QList<int8_t> * ram);
 
 
 QStringList registersToText(const QHash<QString, int8_t> registers);

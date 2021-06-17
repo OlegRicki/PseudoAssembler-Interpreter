@@ -21,8 +21,8 @@ int main(int argc, char *argv[])
             throw     newException;
         }
 
-        readFromFile(inputFilePath, text);
-        interpretateProgram(text, registers, ram);
+        readFromFile(inputFilePath, &text);
+        interpretateProgram(&text, &registers, &ram);
         writeToFile(outputFilePathResult, registersToText(registers));
         if (argc == 4)
         {
@@ -61,17 +61,17 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-void readFromFile(const QString filePath, QStringList text)
+void readFromFile(const QString filePath, QStringList * text)
 {
     QFile file(filePath);
     if (file.open(QIODevice::ReadOnly))
     {
         while (!file.atEnd())
         {
-            text << file.readLine();
+            *text << file.readLine();
         }
 
-        if (text.size() == 0)
+        if (text->size() == 0)
         {
             exception newException = {3, NULL};
             throw newException;
@@ -94,7 +94,8 @@ void writeToFile(const QString filePath, const QStringList text)
         QListIterator<QString> textIterator(text);
         while (textIterator.hasNext())
         {
-            file.write(textIterator.next().toUtf8());
+            QString tmp = textIterator.next();
+            file.write(tmp.toLocal8Bit());
         }
     }
     else
@@ -104,118 +105,124 @@ void writeToFile(const QString filePath, const QStringList text)
     }
 }
 
-void interpretateProgram(QStringList text, QHash<QString, int8_t> registers, QList<int8_t> ram)
+void interpretateProgram(QStringList * text, QHash<QString, int8_t> * registers, QList<int8_t> * ram)
 {
-    QList<QRegularExpressionMatch> execComands;
-    QHash<QString, int> labels;
-    parseAndValidateText(text, execComands, labels);
+    QHash<QString, int8_t> newRegisters = *registers;
+    QList<int8_t> newRam = *ram;
 
-    int numOfCommands = execComands.size();
+    QList<QRegularExpressionMatch> execCommands;
+    QHash<QString, int> labels;
+    parseAndValidateText(text, &execCommands, &labels);
+
+    int numOfCommands = execCommands.size();
     for (int i = 0; i < numOfCommands; ++i)
     {
-        QString curCommand = execComands[i].captured(1);
+        QString curCommand = execCommands[i].captured(1);
         if (curCommand == "ADD")
         {
-            registers[execComands[i].captured(2)] = (registers[execComands[i].captured(2)] + registers[execComands[i].captured(3)]);
+            newRegisters[execCommands[i].captured(2)] = newRegisters[execCommands[i].captured(2)] + newRegisters[execCommands[i].captured(3)];
         }
         else if (curCommand == "SUB")
         {
-            registers[execComands[i].captured(2)] = (registers[execComands[i].captured(2)] - registers[execComands[i].captured(3)]);
+            newRegisters[execCommands[i].captured(2)] = newRegisters[execCommands[i].captured(2)] - newRegisters[execCommands[i].captured(3)];
         }
         else if (curCommand == "AND")
         {
-            registers[execComands[i].captured(2)] = registers[execComands[i].captured(2)] & registers[execComands[i].captured(3)];
+            newRegisters[execCommands[i].captured(2)] = newRegisters[execCommands[i].captured(2)] & newRegisters[execCommands[i].captured(3)];
         }
         else if (curCommand == "OR")
         {
-            registers[execComands[i].captured(2)] = registers[execComands[i].captured(2)] | registers[execComands[i].captured(3)];
+            newRegisters[execCommands[i].captured(2)] = newRegisters[execCommands[i].captured(2)] | newRegisters[execCommands[i].captured(3)];
         }
         else if (curCommand == "NEG")
         {
-            registers[execComands[i].captured(2)] = ~registers[execComands[i].captured(2)];
+            newRegisters[execCommands[i].captured(2)] = ~newRegisters[execCommands[i].captured(2)];
         }
         else if (curCommand == "ROL")
         {
-            registers[execComands[i].captured(2)] = (registers[execComands[i].captured(2)] << registers[execComands[i].captured(3)]);
+            newRegisters[execCommands[i].captured(2)] = newRegisters[execCommands[i].captured(2)] << newRegisters[execCommands[i].captured(3)];
         }
         else if (curCommand == "ROR")
         {
-            registers[execComands[i].captured(2)] = (registers[execComands[i].captured(2)] >> registers[execComands[i].captured(3)]);
+            newRegisters[execCommands[i].captured(2)] = newRegisters[execCommands[i].captured(2)] >> newRegisters[execCommands[i].captured(3)];
         }
         else if (curCommand == "MOVA")
         {
-            if (execComands[i].captured(3).contains("R"))
+            if (execCommands[i].captured(3).contains("R"))
             {
-                ram[execComands[i].captured(2).toInt()] = registers[execComands[i].captured(3)];
+                newRam[execCommands[i].captured(2).toInt()] = newRegisters[execCommands[i].captured(3)];
             }
-            else if (execComands[i].captured(3).contains("b"))
+            else if (execCommands[i].captured(3).contains("b"))
             {
-                ram[execComands[i].captured(2).toInt()] = execComands[i].captured(3).remove(0, 2).toInt(nullptr, 2);
+                newRam[execCommands[i].captured(2).toInt()] = execCommands[i].captured(3).remove(0, 2).toInt(nullptr, 2);
             }
-            else if (execComands[i].captured(3).contains("d"))
+            else if (execCommands[i].captured(3).contains("d"))
             {
-                ram[execComands[i].captured(2).toInt()] = execComands[i].captured(3).remove(0, 2).toInt(nullptr, 10);
+                newRam[execCommands[i].captured(2).toInt()] = execCommands[i].captured(3).remove(0, 2).toInt(nullptr, 10);
             }
-            else if (execComands[i].captured(3).contains("h"))
+            else if (execCommands[i].captured(3).contains("h"))
             {
-                ram[execComands[i].captured(2).toInt()] = execComands[i].captured(3).remove(0, 2).toInt(nullptr, 16);
+                newRam[execCommands[i].captured(2).toInt()] = execCommands[i].captured(3).remove(0, 2).toInt(nullptr, 16);
             }
         }
         else if (curCommand == "MOVR")
         {
-            if (execComands[i].captured(3).contains("R"))
+            if (execCommands[i].captured(3).contains("R"))
             {
-                registers[execComands[i].captured(2)] = registers[execComands[i].captured(3)];
+                newRegisters[execCommands[i].captured(2)] = newRegisters[execCommands[i].captured(3)];
             }
-            else if (execComands[i].captured(3).contains("b"))
+            else if (execCommands[i].captured(3).contains("b"))
             {
-                registers[execComands[i].captured(2)] = execComands[i].captured(3).remove(0, 2).toInt(nullptr, 2);
+                newRegisters[execCommands[i].captured(2)] = execCommands[i].captured(3).remove(0, 2).toInt(nullptr, 2);
             }
-            else if (execComands[i].captured(3).contains("d"))
+            else if (execCommands[i].captured(3).contains("d"))
             {
-                registers[execComands[i].captured(2)] = execComands[i].captured(3).remove(0, 2).toInt(nullptr, 10);
+                newRegisters[execCommands[i].captured(2)] = execCommands[i].captured(3).remove(0, 2).toInt(nullptr, 10);
             }
-            else if (execComands[i].captured(3).contains("h"))
+            else if (execCommands[i].captured(3).contains("x"))
             {
-                registers[execComands[i].captured(2)] = execComands[i].captured(3).remove(0, 2).toInt(nullptr, 16);
+                newRegisters[execCommands[i].captured(2)] = execCommands[i].captured(3).remove(0, 2).toInt(nullptr, 16);
             }
             else
             {
-                registers[execComands[i].captured(2)] = ram[execComands[i].captured(3).toInt()];
+                newRegisters[execCommands[i].captured(2)] = newRam[execCommands[i].captured(3).toInt()];
             }
 
         }
         else if (curCommand == "JMP")
         {
-            if (labels.contains(execComands[i].captured(2)))
+            if (labels.contains(execCommands[i].captured(2)))
             {
-                i = labels[execComands[i].captured(2)];
+                i = labels[execCommands[i].captured(2)];
             }
             else
             {
-                exception newException = {5, text.indexOf(execComands[i].captured(2))};
+                exception newException = {5, text->indexOf(execCommands[i].captured(2))};
                 throw newException;
             }
         }
-        else if (curCommand == "SBRC" && !(registers[execComands[i].captured(2)] & (1 << registers[execComands[i].captured(3)])))
+        else if (curCommand == "SBRC" && !(newRegisters[execCommands[i].captured(2)] & (1 << newRegisters[execCommands[i].captured(3)])))
         {
             i++;
         }
-        else if (curCommand == "SBRS" &&   registers[execComands[i].captured(2)] & (1 << registers[execComands[i].captured(3)]))
+        else if (curCommand == "SBRS" &&   newRegisters[execCommands[i].captured(2)] & (1 << newRegisters[execCommands[i].captured(3)]))
         {
             i++;
         }
-        else if (curCommand == "EQU"  &&   registers[execComands[i].captured(2)]    ==   registers[execComands[i].captured(3)])
+        else if (curCommand == "EQU"  &&   newRegisters[execCommands[i].captured(2)]    ==   newRegisters[execCommands[i].captured(3)])
         {
             i++;
         }
     }
+
+    *registers = newRegisters;
+    *ram = newRam;
 }
 
-void parseAndValidateText(QStringList text, QList<QRegularExpressionMatch> execCommands, QHash<QString, int> labels)
+void parseAndValidateText(QStringList * text, QList<QRegularExpressionMatch> * execCommands, QHash<QString, int> * labels)
 {   
     exception newException;
-    QListIterator<QString> textIterator(text);
+    QListIterator<QString> textIterator(*text);
     QString curString;
     QRegularExpressionMatch newMatch;
     QRegularExpression regExp;
@@ -230,7 +237,7 @@ void parseAndValidateText(QStringList text, QList<QRegularExpressionMatch> execC
         newMatch = regExp.match(curString);
         if (newMatch.hasMatch())
         {
-            execCommands.append(newMatch);
+            execCommands->append(newMatch);
             goto END_STRING_PARSE;
         }
 
@@ -238,7 +245,7 @@ void parseAndValidateText(QStringList text, QList<QRegularExpressionMatch> execC
         newMatch = regExp.match(curString);
         if (newMatch.hasMatch())
         {
-            execCommands.append(newMatch);
+            execCommands->append(newMatch);
             goto END_STRING_PARSE;
         }
 
@@ -246,7 +253,7 @@ void parseAndValidateText(QStringList text, QList<QRegularExpressionMatch> execC
         newMatch = regExp.match(curString);
         if (newMatch.hasMatch())
         {
-            execCommands.append(newMatch);
+            execCommands->append(newMatch);
             goto END_STRING_PARSE;
         }
 
@@ -254,15 +261,15 @@ void parseAndValidateText(QStringList text, QList<QRegularExpressionMatch> execC
         newMatch = regExp.match(curString);
         if (newMatch.hasMatch())
         {
-            execCommands.append(newMatch);
+            execCommands->append(newMatch);
             goto END_STRING_PARSE;
         }
 
         regExp = QRegularExpression("^\\h*([a-zA-Z\\d]+):\\h*(?:;[\\w\\d\\s]*$|$)");
         newMatch = regExp.match(curString);
-        if (newMatch.hasMatch() && !labels.contains(newMatch.captured(1)))
+        if (newMatch.hasMatch() && !labels->contains(newMatch.captured(1)))
         {
-            labels.insert(newMatch.captured(1), execCommands.count() - 1);
+            labels->insert(newMatch.captured(1), execCommands->count() - 1);
             goto END_STRING_PARSE;
         }
 
@@ -286,7 +293,7 @@ QStringList registersToText(const QHash<QString, int8_t> registers)
     for (int i = 0; i < 8; ++i)
     {
         QString curKey = "R" + QString::number(i);
-        registersText.append(curKey + " = " + registers[curKey]);
+        registersText.append(curKey + " = " + QString::number(registers[curKey]));
     }
 
     return registersText;
