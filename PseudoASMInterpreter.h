@@ -49,5 +49,6 @@ QStringList registersToText(const QHash<QString, int8_t> registers);
 
 QStringList ramToText(const QList<int8_t> ram);
 
+void initRam(QList<int8_t> * ram);
 
 #endif // PSEUDOASMINTERPRETER_H

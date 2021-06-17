@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
         }
         else if (argc == 4 && QString(argv[1]) == "-d")
         {
-            inputFilePath        = argv[1];
+            inputFilePath        = argv[2];
             outputFilePathResult = QString(argv[3]) + "\\result.txt";
             outputFilePathRam    = QString(argv[3]) + "\\RAM.txt";
         }
@@ -22,11 +22,13 @@ int main(int argc, char *argv[])
         }
 
         readFromFile(inputFilePath, &text);
+
+        initRam(&ram);
         interpretateProgram(&text, &registers, &ram);
         writeToFile(outputFilePathResult, registersToText(registers));
         if (argc == 4)
         {
-            writeToFile(outputFilePathResult, ramToText(ram));
+            writeToFile(outputFilePathRam, ramToText(ram));
         }
     }
 
@@ -59,6 +61,14 @@ int main(int argc, char *argv[])
     }
 
     return 0;
+}
+
+void initRam(QList<int8_t> * ram)
+{
+    for (int i = 0; i < 256; ++i)
+    {
+        ram->append(0);
+    }
 }
 
 void readFromFile(const QString filePath, QStringList * text)
