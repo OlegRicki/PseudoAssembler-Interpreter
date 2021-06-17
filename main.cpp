@@ -2,6 +2,7 @@
 
 int main(int argc, char *argv[])
 {
+    QCoreApplication a(argc, argv);
     try {
         if      (argc == 3)
         {
@@ -34,23 +35,28 @@ int main(int argc, char *argv[])
 
     catch(exception exception)
     {
+        inputErrorFilePath = a.applicationDirPath() + "\\inputError.txt";
         if      (exception.errCode == 1)
         {
-            writeToFile(outputFilePathResult, QStringList("On the command line, an option other than “-d” is passed as an argument."));
+            writeToFile(inputErrorFilePath, QStringList("On the command line, an option other than “-d” is passed as an argument."));
         }
         else if (exception.errCode == 2)
         {
-            writeToFile(outputFilePathResult, QStringList("Error opening file for reading."));
+            writeToFile(inputErrorFilePath, QStringList("Error opening file for reading."));
         }
         else if (exception.errCode == 3)
         {
             writeToFile(outputFilePathResult, QStringList("The text of the program in which the search should be performed was not found."));
         }
-        else if (exception.errCode == 4)
+        else if(exception.errCode == 4)
+        {
+            writeToFile(inputErrorFilePath, QStringList("Syntax error. Line number: " + QString::number(exception.numOfStr)));
+        }
+        else if (exception.errCode == 5)
         {
             writeToFile(outputFilePathResult, QStringList("Syntax error. Line number: " + QString::number(exception.numOfStr)));
         }
-        else if (exception.errCode == 5)
+        else if (exception.errCode == 6)
         {
             writeToFile(outputFilePathResult, QStringList("An attempt was made to navigate to a non-existent label. Line number: " + QString::number(exception.numOfStr)));
         }
@@ -206,7 +212,7 @@ void interpretateProgram(QStringList * text, QHash<QString, int8_t> * registers,
             }
             else
             {
-                exception newException = {5, text->indexOf(execCommands[i].captured(2))};
+                exception newException = {6, text->indexOf(execCommands[i].captured(2))};
                 throw newException;
             }
         }
@@ -289,7 +295,7 @@ void parseAndValidateText(QStringList * text, QList<QRegularExpressionMatch> * e
             goto END_STRING_PARSE;
         }
 
-        newException = {4, cnt};
+        newException = {5, cnt};
         throw newException;
 
 END_STRING_PARSE:;

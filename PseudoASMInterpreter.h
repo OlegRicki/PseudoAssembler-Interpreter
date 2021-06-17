@@ -7,12 +7,18 @@
 #include <QRegularExpression>
 #include <QFile>
 #include <stdint.h>
+#include <QCoreApplication>
+
 
 struct exception
 {
     int errCode;
     int numOfStr;
 };
+
+
+QString inputErrorFilePath;
+
 
 QString inputFilePath;
 
@@ -48,6 +54,7 @@ QStringList registersToText(const QHash<QString, int8_t> registers);
 
 
 QStringList ramToText(const QList<int8_t> ram);
+
 
 void initRam(QList<int8_t> * ram);
 
