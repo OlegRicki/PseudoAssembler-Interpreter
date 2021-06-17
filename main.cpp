@@ -80,7 +80,7 @@ void initRam(QList<int8_t> * ram)
 void readFromFile(const QString filePath, QStringList * text)
 {
     QFile file(filePath);
-    if (file.open(QIODevice::ReadOnly) /*&& filePath.endsWith(".txt")*/)
+    if (file.open(QIODevice::ReadOnly) && filePath.endsWith(".txt"))
     {
         while (!file.atEnd())
         {
@@ -91,6 +91,14 @@ void readFromFile(const QString filePath, QStringList * text)
         {
             exception newException = {3, NULL};
             throw newException;
+        }
+        else
+        {
+            QMutableListIterator<QString> text_iterator(*text);
+            while (text_iterator.hasNext() && text_iterator.peekNext().contains("\r\n"))
+            {
+                text_iterator.next().chop(2);
+            }
         }
     }
     else
