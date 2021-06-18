@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
         }
         else if(exception.errCode == 4)
         {
-            writeToFile(inputErrorFilePath, QStringList("Syntax error. Line number: " + QString::number(exception.numOfStr)));
+            writeToFile(inputErrorFilePath, QStringList("Error opening file for writing."));
         }
         else if (exception.errCode == 5)
         {
@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
         }
         else if (exception.errCode == 6)
         {
-            writeToFile(outputFilePathResult, QStringList("An attempt was made to navigate to a non-existent label. Line number: " + QString::number(exception.numOfStr)));
+            writeToFile(outputFilePathResult, QStringList("An attempt was made to navigate to a non-existent label." ));
         }
         else if (exception.errCode == 7)
         {
@@ -294,7 +294,7 @@ void interpretateProgram(QStringList * text, QHash<QString, int8_t> * registers,
             else
             {
                 // Выдать сообщение о том, что производится попытка совершения прыжка по несуществующей метке
-                exception newException = {6, text->indexOf(execCommands[i].captured(2))};
+                exception newException = {6, NULL};
                 throw newException;
             }
         }
@@ -356,6 +356,18 @@ void parseAndValidateText(QStringList * text, QList<QRegularExpressionMatch> * e
             goto END_STRING_PARSE;
         }
 
+        // Проверить строку на соответствие с регулярным выражением для команды NEG
+        regExp = QRegularExpression("^\\h*(NEG)\\h+(R[0-7])\\h*(?:;|$)");
+        newMatch = regExp.match(curString);
+        // Если соответствует
+        if (newMatch.hasMatch())
+        {
+            // Добавить выделенную из строки сполняемую команду в список
+            execCommands->append(newMatch);
+            // Закончить парсинг текущей строки
+            goto END_STRING_PARSE;
+        }
+
         // Проверить строку на соответствие с регулярным выражением для команды MOVA
         regExp = QRegularExpression("^\\h*(MOVA)\\h+((?:[0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5]))\\h*,\\h*(R[0-7]|0(?:d\\d+|b[01]+|x[\\dA-F]+))\\h*(?:;|$)");
         newMatch = regExp.match(curString);
@@ -398,7 +410,7 @@ void parseAndValidateText(QStringList * text, QList<QRegularExpressionMatch> * e
         // Если соответствует
         if (newMatch.hasMatch() && !labels->contains(newMatch.captured(1)))
         {
-            // Добавить метку в качестве ключа в таблицу со значением команды, после которой стоит метка
+            // Добавить метку в качестве ключа в таблицу со значением - индексом команды, после которой стоит метка
             labels->insert(newMatch.captured(1), execCommands->count() - 1);
             // Закончить парсинг текущей строки
             goto END_STRING_PARSE;
