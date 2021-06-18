@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
         // Произвести интерпретацию программы, написанную на языке псевдоассемблера
         interpretateProgram(&text, &registers, &ram);
         // Вывести результат интерпретации в файл result.txt по пути, заданным пользователем
-        writeToFile(outputFilePathResult, registersToText(registers));
+        writeToFile(outputFilePathResult, registersToText(registers, NUM_OF_REGISTERS));
         // Если пользователь задал ключ "-d"
         if (argv[1] == QString("-d"))
         {
@@ -345,7 +345,7 @@ void parseAndValidateText(QStringList * text, QList<QRegularExpressionMatch> * e
         cnt++;
 
         // Проверить строку на соответствие с регулярным выражением для команд ADD OR AND SUB EQU ROL ROR SBRS SBRC
-        regExp = QRegularExpression("^\\h*(ADD|OR|AND|SUB|EQU|ROL|ROR|SBRS|SBRC)\\h+(R[0-7])\\h*,\\h*(R[0-7])\\h*(?:;[\\w\\d\\h]*$|$)");
+        regExp = QRegularExpression("^\\h*(ADD|OR|AND|SUB|EQU|ROL|ROR|SBRS|SBRC)\\h+(R[0-7])\\h*,\\h*(R[0-7])\\h*(?:;|$)");
         newMatch = regExp.match(curString);
         // Если соответствует
         if (newMatch.hasMatch())
@@ -357,7 +357,7 @@ void parseAndValidateText(QStringList * text, QList<QRegularExpressionMatch> * e
         }
 
         // Проверить строку на соответствие с регулярным выражением для команды MOVA
-        regExp = QRegularExpression("^\\h*(MOVA)\\h+((?:[0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5]))\\h*,\\h*(R[0-7]|0(?:d\\d+|b[01]+|x[\\dA-F]+))\\h*(?:;[\\w\\d\\s]*$|$)");
+        regExp = QRegularExpression("^\\h*(MOVA)\\h+((?:[0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5]))\\h*,\\h*(R[0-7]|0(?:d\\d+|b[01]+|x[\\dA-F]+))\\h*(?:;|$)");
         newMatch = regExp.match(curString);
         // Если соответствует
         if (newMatch.hasMatch())
@@ -369,7 +369,7 @@ void parseAndValidateText(QStringList * text, QList<QRegularExpressionMatch> * e
         }
 
         // Проверить строку на соответствие с регулярным выражением для команды MOVR
-        regExp = QRegularExpression("^\\h*(MOVR)\\h+(R[0-7])\\h*,\\h*(R[0-7]|0(?:d\\d+|b[01]+|x[\\dA-F]+)|\\d+)\\h*(?:;[\\w\\d\\s]*$|$)");
+        regExp = QRegularExpression("^\\h*(MOVR)\\h+(R[0-7])\\h*,\\h*(R[0-7]|0(?:d\\d+|b[01]+|x[\\dA-F]+)|\\d+)\\h*(?:;|$)");
         newMatch = regExp.match(curString);
         // Если соответствует
         if (newMatch.hasMatch())
@@ -381,7 +381,7 @@ void parseAndValidateText(QStringList * text, QList<QRegularExpressionMatch> * e
         }
 
         // Проверить строку на соответствие с регулярным выражением для команды JMP
-        regExp = QRegularExpression("^\\h*(JMP)\\h+([A-Za-z\\d]+)(?:;[\\w\\d\\s]*$|$)");
+        regExp = QRegularExpression("^\\h*(JMP)\\h+([A-Za-z\\d]+)(?:;|$)");
         newMatch = regExp.match(curString);
         // Если соответствует
         if (newMatch.hasMatch())
@@ -393,7 +393,7 @@ void parseAndValidateText(QStringList * text, QList<QRegularExpressionMatch> * e
         }
 
         // Проверить строку на соответствие с регулярным выражением для метки
-        regExp = QRegularExpression("^\\h*([a-zA-Z\\d]+):\\h*(?:;[\\w\\d\\s]*$|$)");
+        regExp = QRegularExpression("^\\h*([a-zA-Z\\d]+):\\h*(?:;|$)");
         newMatch = regExp.match(curString);
         // Если соответствует
         if (newMatch.hasMatch() && !labels->contains(newMatch.captured(1)))
@@ -405,7 +405,7 @@ void parseAndValidateText(QStringList * text, QList<QRegularExpressionMatch> * e
         }
 
         // Проверить строку на соответствие с регулярным выражением для пустой строки
-        regExp = QRegularExpression("^\\h*(?:;[\\w\\d\\s]*$|$)");
+        regExp = QRegularExpression("^\\h*(?:;|$)");
         newMatch = regExp.match(curString);
         // Если соответствует
         if (newMatch.hasMatch())
@@ -422,16 +422,16 @@ END_STRING_PARSE:;
     }
 }
 
-QStringList registersToText(const QHash<QString, int8_t> registers)
+QStringList registersToText(const QHash<QString, int8_t> registers, int numOfRegisters)
 {
     // Результирующий текст с состояниями регистров РОН
     QStringList registersText;
     // Новый ключ для таблицы registers
     QString newKey;
     // Для каждого регистра РОН
-    for (int i = 0; i < NUM_OF_REGISTERS; ++i)
+    for (int i = 0; i < numOfRegisters; ++i)
     {
-        // Сгенерировать строку "Rn = *value*\n"
+        // Сгенерировать строку "Rn = *value*"
         newKey = "R" + QString::number(i);
         registersText.append(newKey + " = " + QString::number(registers[newKey]));
     }

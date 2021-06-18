@@ -74,11 +74,13 @@ void parseAndValidateText(QStringList * text, QList<QRegularExpressionMatch> * e
 */
 void interpretateProgram(QStringList * text, QHash<QString, int8_t> * registers, QList<int8_t> * ram);
 
-/*  Преобразование хэш-таблицу целых чисел в текст в виде R0 = registers[0]\nR1 = registers[1] и т.д.
+/*  Преобразование хэш-таблицу целых чисел в текст в виде R0 = registers[R0]\nR1 = registers[R1] и т.д.
+    За регистры принимаются значения в registers по ключам R0, R1, ..., Rn, где n = numOfRegisters - 1
   * registers - состояния регистров РОН
+  * numOfRegisters - количество регистров РОН
   * return - текст вида R0 = registers[0]\nR1 = registers[1] и т.д.
 */
-QStringList registersToText(const QHash<QString, int8_t> registers);
+QStringList registersToText(const QHash<QString, int8_t> registers, int numOfRegisters);
 
 /*  Преобразовывает вектор целых чисел в текст - матрицу целых чисел в шестнадцатиричной системе счисления
   * ram - список целых чисел - ячеек памяти RAM
@@ -86,12 +88,12 @@ QStringList registersToText(const QHash<QString, int8_t> registers);
 */
 QStringList ramToText(const QList<int8_t> ram);
 
-/*  Инициализирует память RAM нулями
+/*  Инициализирует память RAM нулями. Количество инициализированных ячеек регулируется макросом NUM_OF_RAM_CELLS
   * ram - список целых чисел - ячеек памяти RAM
 */
 void initRam(QList<int8_t> * ram);
 
-/*  Инициализирует регистры РОН нулями
+/*  Инициализирует регистры РОН нулями.Количество инициализированных регистров регулируется макросом NUM_OF_REGISTERS
   * registers - состояния регистров РОН
 */
 void initRegisters(QHash<QString, int8_t> * registers);
