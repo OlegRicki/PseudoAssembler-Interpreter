@@ -45,11 +45,11 @@ QList<int8_t> ram;
 // Таблица восьмиразрядных знаковых регистров РОН
 QHash<QString, int8_t> registers;
 
-/*  Читает содержимое файла, лежащего в filePath, и записывает считанное в список text
+/*  Читает содержимое текстового файла, лежащего в filePath, и записывает считанное в список text
   * filePath - полный путь к файлу
   * text - список строк, в который помещается содержимое файла
 */
-void readFromFile(QString filePath, QStringList * text);
+void readFromTextFile(QString filePath, QStringList * text);
 
 /*  Записывает содержимое списка строк text в файл, лежащего в filePath
   * filePath - полный путь к файлу
