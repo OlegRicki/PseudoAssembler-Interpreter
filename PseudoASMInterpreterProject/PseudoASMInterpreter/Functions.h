@@ -1,5 +1,5 @@
-#ifndef PSEUDOASMINTERPRETER_H
-#define PSEUDOASMINTERPRETER_H
+#ifndef FUNCTIONS_H
+#define FUNCTIONS_H
 
 #include <QString>
 #include <QHash>
@@ -23,27 +23,6 @@ struct exception
     // Номер строки с ошибкой, если ошибка в пользовательском коде на языке псевдоассемблера
     int numOfStr;
 };
-
-// Путь к файлу с текстом ошибки входных данных
-QString inputErrorFilePath;
-
-// Путь к входному файлу с пользовательским кодом программы на языке псевдоассемблера
-QString inputFilePath;
-
-// Путь к выходному результирующему файлу (с состоянием регистров при успешной интерпретации, при неуспешной - с текстом ошибки)
-QString outputFilePathResult;
-
-// Путь к выходному файлу с состоянием памяти RAM
-QString outputFilePathRam;
-
-// Текст пользовательской программы на языке псевдоассемблера
-QStringList text;
-
-// Список восьмиразрядных знаковых ячеек памяти RAM
-QList<int8_t> ram;
-
-// Таблица восьмиразрядных знаковых регистров РОН
-QHash<QString, int8_t> registers;
 
 /*  Читает содержимое текстового файла, лежащего в filePath, и записывает считанное в список text
   * filePath - полный путь к файлу
@@ -98,4 +77,4 @@ void initRam(QList<int8_t> * ram);
 */
 void initRegisters(QHash<QString, int8_t> * registers);
 
-#endif // PSEUDOASMINTERPRETER_H
+#endif // FUNCTIONS_H
