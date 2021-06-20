@@ -34,8 +34,8 @@ void readFromTextFile(const QString filePath, QStringList * text)
     /// Иначе
     else
     {
-        /// Выдать сообщение о том, что возникли проблемы при открытии файла
-        exception newException = {2, NULL};
+        /// Выдать сообщение о том, что возникли проблемы при открытии файла для чтения
+        exception newException = {ERR_OPENING_FILE_READ, NULL};
         throw newException;
     }
 
@@ -60,7 +60,7 @@ void writeToFile(const QString filePath, const QStringList text)
     else
     {
         /// Выдать сообщение о том, что возникли проблемы при открытии файла для записи
-        exception newException = {4, NULL};
+        exception newException = {ERR_OPENING_FILE_WRITE, NULL};
         throw newException;
     }
 
@@ -204,7 +204,7 @@ void interpretateProgram(QStringList * text, QHash<QString, int8_t> * registers,
             else
             {
                 /// Выдать сообщение о том, что производится попытка совершения прыжка по несуществующей метке
-                exception newException = {6, NULL};
+                exception newException = {ERR_PROG_INVALID_LABEL, NULL};
                 throw newException;
             }
         }
@@ -337,7 +337,7 @@ void parseAndValidateText(QStringList * text, QList<QRegularExpressionMatch> * e
         }
 
         /// Если строка не прошла валидацию ни по одному регулярному выражению, выдать сообщение о синтаксической ошибке
-        newException = {5, cnt};
+        newException = {ERR_PROG_SYNTAX, cnt};
         throw newException;
 
 END_STRING_PARSE:;
@@ -434,5 +434,37 @@ void initRegisters(QHash<QString, int8_t> * registers)
         /// Добавить по ключу Rn значение 0
         QString curKey = "R" + QString::number(i);
         registers->insert(curKey, 0);
+    }
+}
+
+void handleCustomException(exception exception, QString inputErrorFilePath, QString ProgramErrorFilePath)
+{
+    if      (exception.errCode == ERR_INPUT_ARG_KEY)
+    {
+        writeToFile(inputErrorFilePath, QStringList("On the command line, an option other than “-d” is passed as an argument."));
+    }
+    else if (exception.errCode == ERR_OPENING_FILE_READ)
+    {
+        writeToFile(inputErrorFilePath, QStringList("Error opening file for reading."));
+    }
+    else if (exception.errCode == ERR_PROG_EMPTY_PROG)
+    {
+        writeToFile(ProgramErrorFilePath, QStringList("The text of the program in which the search should be performed was not found."));
+    }
+    else if(exception.errCode ==  ERR_OPENING_FILE_WRITE)
+    {
+        writeToFile(inputErrorFilePath, QStringList("Error opening file for writing."));
+    }
+    else if (exception.errCode == ERR_PROG_SYNTAX)
+    {
+        writeToFile(ProgramErrorFilePath, QStringList("Syntax error. Line number: " + QString::number(exception.numOfStr)));
+    }
+    else if (exception.errCode == ERR_PROG_INVALID_LABEL)
+    {
+        writeToFile(ProgramErrorFilePath, QStringList("An attempt was made to navigate to a non-existent label." ));
+    }
+    else if (exception.errCode == ERR_INPUT_NUM_ARGS)
+    {
+        writeToFile(inputErrorFilePath, QStringList("Invalid number of input arguments."));
     }
 }

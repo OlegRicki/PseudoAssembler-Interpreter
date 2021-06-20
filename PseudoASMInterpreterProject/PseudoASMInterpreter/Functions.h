@@ -15,6 +15,28 @@
 /// Количество ячеек памяти RAM
 #define NUM_OF_RAM_CELLS 256
 
+
+/// Код ошибки: неверно заданных ключ (отличный от "-d")
+#define ERR_INPUT_ARG_KEY 1
+
+/// Код ошибки: программе передано недопустимое количество аргументов
+#define ERR_INPUT_NUM_ARGS 7
+
+/// Код ошибки: невозможно открыть файл для чтения
+#define ERR_OPENING_FILE_READ 2
+
+/// Код ошибки: невозможно открыть файл для записи
+#define ERR_OPENING_FILE_WRITE 4
+
+/// Код ошибки: передана пустая программа
+#define ERR_PROG_EMPTY_PROG 3
+
+/// Код ошибки: в тексте программы обнаружена синтаксическая ошибка
+#define ERR_PROG_SYNTAX 5
+
+/// Код ошибки: в тексте программы осуществлена попытка перехода по несуществующей метке
+#define ERR_PROG_INVALID_LABEL 6
+
 /// Кастомное исключение
 struct exception
 {
@@ -76,5 +98,12 @@ void initRam(QList<int8_t> * ram);
   \param[in|out] registers - состояния регистров РОН
 */
 void initRegisters(QHash<QString, int8_t> * registers);
+
+/*!  Обрабатывает исключения
+ * \param[in] exception - структура, содержащая код ошибки и номер строки с ошибкой
+ * \param[in] inputErrorFilePath - путь к файлу, в который должно выводиться сообщение о некорректности входных данных
+ * \param[in] ProgramErrorFilePath - путь к файлу, в который должно выводиться сообщение об ошибке в программе
+ */
+void handleCustomException(exception exception, QString inputErrorFilePath, QString ProgramErrorFilePath);
 
 #endif // FUNCTIONS_H

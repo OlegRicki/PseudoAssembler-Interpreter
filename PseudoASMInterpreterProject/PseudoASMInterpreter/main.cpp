@@ -1,4 +1,3 @@
-#include "PseudoASMInterpreter.h"
 #include "Functions.h"
 
 /*! \mainpage Интерпретатор для программ, написанных на языке псевдоассемблера
@@ -50,13 +49,13 @@ int main(int argc, char *argv[])
         else if (QString(argv[1]) != "-d")
         {
             /// Сообщить о том, что в качестве аргумента передан неверный ключ
-            exception newException = {1, NULL};
+            exception newException = {ERR_INPUT_ARG_KEY, NULL};
             throw     newException;
         }
         else if (argc < 3 || argc > 4)
         {
             /// Сообщить о том, что количество аргументов неверно
-            exception newException = {7, NULL};
+            exception newException = {ERR_INPUT_NUM_ARGS, NULL};
             throw     newException;
         }
 
@@ -79,37 +78,8 @@ int main(int argc, char *argv[])
 
     /// Поймать кастомное исключение
     catch(exception exception)
-    {
-        /// Определить полный путь к файлу, в который выведется сообщение об ошибке, связанной с входными аргументами
-        inputErrorFilePath = a.applicationDirPath() + "\\inputError.txt";
-        if      (exception.errCode == 1)
-        {
-            writeToFile(inputErrorFilePath, QStringList("On the command line, an option other than “-d” is passed as an argument."));
-        }
-        else if (exception.errCode == 2)
-        {
-            writeToFile(inputErrorFilePath, QStringList("Error opening file for reading."));
-        }
-        else if (exception.errCode == 3)
-        {
-            writeToFile(outputFilePathResult, QStringList("The text of the program in which the search should be performed was not found."));
-        }
-        else if(exception.errCode == 4)
-        {
-            writeToFile(inputErrorFilePath, QStringList("Error opening file for writing."));
-        }
-        else if (exception.errCode == 5)
-        {
-            writeToFile(outputFilePathResult, QStringList("Syntax error. Line number: " + QString::number(exception.numOfStr)));
-        }
-        else if (exception.errCode == 6)
-        {
-            writeToFile(outputFilePathResult, QStringList("An attempt was made to navigate to a non-existent label." ));
-        }
-        else if (exception.errCode == 7)
-        {
-            writeToFile(inputErrorFilePath, QStringList("Invalid number of input arguments."));
-        }
+    {     
+        handleCustomException(exception, a.applicationDirPath() + "\\inputError.txt", outputFilePathResult);
     }
     /// Поймать исключение о переполнении
     catch(std::overflow_error &exception)
