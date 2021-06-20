@@ -1,5 +1,2 @@
-PseudoASMInterpreter.pro.user
-PseudoASMInterpreter.h.autosave
-main.cpp.autosave
-Tests.pro.user
-PseudoASMInterpreter.pro.user
+*.pro.user
+*.autosave

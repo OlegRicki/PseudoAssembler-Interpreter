@@ -75,6 +75,14 @@ void parseAndValidateText(QStringList * text, QList<QRegularExpressionMatch> * e
 */
 void interpretateProgram(QStringList * text, QHash<QString, int8_t> * registers, QList<int8_t> * ram);
 
+/*!  Конвертирует аргумент, представляющий собой константное значение, значение из регистра или значение из памяти RAM в целое число
+ * \param arg - аргумент из текста программы в виде строки, который необходимо конвертировать в целое число
+ * \param registers - состояния регистров РОН
+ * \param ram - список целых чисел - ячеек памяти RAM
+ * \return - целое число
+ */
+int8_t convertArgFromStr(QString arg, const QHash<QString, int8_t> * registers, const QList<int8_t> * ram);
+
 /*!  Преобразование хэш-таблицу целых чисел в текст в виде R0 = registers[R0]\nR1 = registers[R1] и т.д.
     За регистры принимаются значения в registers по ключам R0, R1, ..., Rn, где n = numOfRegisters - 1
   \param[in] registers - состояния регистров РОН

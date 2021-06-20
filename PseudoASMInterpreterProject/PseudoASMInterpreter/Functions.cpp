@@ -132,64 +132,12 @@ void interpretateProgram(QStringList * text, QHash<QString, int8_t> * registers,
         /// Если текущая команда - помещение значения в ячейку памяти RAM по адресу
         else if (curCommand == "MOVA")
         {
-            /// Если помещается значение из регистра в ячейку по заданному адресу
-            if (execCommands[i].captured(3).contains("R"))
-            {
-                /// Поместить значение из регистра в ячейку по заданному адресу
-                newRam[execCommands[i].captured(2).toInt()] = newRegisters[execCommands[i].captured(3)];
-            }
-            /// Если в ячейку по заданному помещается константа, записанная в двоичной системе счисления
-            else if (execCommands[i].captured(3).contains("b"))
-            {
-                /// Поместить константное значение в ячейку по заданному адресу
-                newRam[execCommands[i].captured(2).toInt()] = execCommands[i].captured(3).remove(0, 2).toInt(nullptr, 2);
-            }
-            /// Если в ячейку по заданному помещается константа, записанная в десятичной системе счисления
-            else if (execCommands[i].captured(3).contains("d"))
-            {
-                /// Поместить константное значение в ячейку по заданному адресу
-                newRam[execCommands[i].captured(2).toInt()] = execCommands[i].captured(3).remove(0, 2).toInt(nullptr, 10);
-            }
-            /// Если в ячейку по заданному помещается константа, записанная в шестнадцатиричной системе счисления
-            else if (execCommands[i].captured(3).contains("x"))
-            {
-                /// Поместить константное значение в ячейку по заданному адресу
-                newRam[execCommands[i].captured(2).toInt()] = execCommands[i].captured(3).remove(0, 2).toInt(nullptr, 16);
-            }
+            newRam[execCommands[i].captured(2).toInt()] = convertArgFromStr(execCommands[i].captured(3), &newRegisters, &newRam);
         }
         /// Если текущая команда - помещения значения в регистр РОН
         else if (curCommand == "MOVR")
         {
-            /// Если помещается значение из регистра
-            if (execCommands[i].captured(3).contains("R"))
-            {
-                /// Поместить значение из регистра
-                newRegisters[execCommands[i].captured(2)] = newRegisters[execCommands[i].captured(3)];
-            }
-            /// Если помещается константное значение, записанное в двоичной системе счисления
-            else if (execCommands[i].captured(3).contains("b"))
-            {
-                /// Поместить константное значение
-                newRegisters[execCommands[i].captured(2)] = execCommands[i].captured(3).remove(0, 2).toInt(nullptr, 2);
-            }
-            /// Если помещается константное значение, записанное в десятичной системе счисления
-            else if (execCommands[i].captured(3).contains("d"))
-            {
-                /// Поместить константное значение
-                newRegisters[execCommands[i].captured(2)] = execCommands[i].captured(3).remove(0, 2).toInt(nullptr, 10);
-            }
-            /// Если помещается константное значение, записанное в шестнадцатиричной системе счисления
-            else if (execCommands[i].captured(3).contains("x"))
-            {
-                /// Поместить константное значение
-                newRegisters[execCommands[i].captured(2)] = execCommands[i].captured(3).remove(0, 2).toInt(nullptr, 16);
-            }
-            /// Если помещается значение из ячейки памяти по заданному адресу
-            else
-            {
-                /// Поместить значение из ячейки памяти по адресу
-                newRegisters[execCommands[i].captured(2)] = newRam[execCommands[i].captured(3).toInt()];
-            }
+            newRegisters[execCommands[i].captured(2)] = convertArgFromStr(execCommands[i].captured(3), &newRegisters, &newRam);
         }
         /// Если текущая команда - прыжок по метке
         else if (curCommand == "JMP")
@@ -231,6 +179,44 @@ void interpretateProgram(QStringList * text, QHash<QString, int8_t> * registers,
     /// Сохранить содержимое копий памяти и регистров
     *registers = newRegisters;
     *ram = newRam;
+}
+
+int8_t convertArgFromStr(QString arg, const QHash<QString, int8_t> * registers, const QList<int8_t> * ram)
+{
+    int8_t result;
+    /// Если помещается значение из регистра
+    if (arg.contains("R"))
+    {
+        /// Поместить значение из регистра
+        result = registers->value(arg);
+    }
+    /// Если помещается константное значение, записанное в двоичной системе счисления
+    else if (arg.contains("b"))
+    {
+        /// Поместить константное значение
+        result = arg.remove(0, 2).toInt(nullptr, 2);
+    }
+    /// Если помещается константное значение, записанное в десятичной системе счисления
+    else if (arg.contains("d"))
+    {
+        /// Поместить константное значение
+        result = arg.remove(0, 2).toInt(nullptr, 10);
+    }
+    /// Если помещается константное значение, записанное в шестнадцатиричной системе счисления
+    else if (arg.contains("x"))
+    {
+        /// Поместить константное значение
+        result = arg.remove(0, 2).toInt(nullptr, 16);
+    }
+    /// Если помещается значение из ячейки памяти по заданному адресу
+    else
+    {
+        /// Поместить значение из ячейки памяти по адресу
+        result = ram->value(arg.toInt());
+    }
+
+    /// Вернуть ковертированный в целое число результат
+    return result;
 }
 
 void parseAndValidateText(QStringList * text, QList<QRegularExpressionMatch> * execCommands, QHash<QString, int> * labels)
