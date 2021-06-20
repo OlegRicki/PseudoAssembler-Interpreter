@@ -142,19 +142,11 @@ void interpretateProgram(QStringList * text, QHash<QString, int8_t> * registers,
         /// Если текущая команда - прыжок по метке
         else if (curCommand == "JMP")
         {
-            /// Если заданная метка существует
-            if (labels.contains(execCommands[i].captured(2)))
-            {
-                /// Произвести прыжок
-                i = labels[execCommands[i].captured(2)];
-            }
-            /// Иначе
-            else
-            {
-                /// Выдать сообщение о том, что производится попытка совершения прыжка по несуществующей метке
-                exception newException = {ERR_PROG_INVALID_LABEL, NULL};
-                throw newException;
-            }
+            exception newException = {ERR_PROG_INVALID_LABEL, NULL};
+            /// Если данная метка существует, произвести прыжок
+            labels.contains(execCommands[i].captured(2))    ?   i = labels[execCommands[i].captured(2)]
+            /// Иначе выдать сообщение об ошибке
+                                                            :   throw newException;
         }
         /// Если текущая команда - условный прыжок через следующую команду при условии, что бит сброшен
         else if (curCommand == "SBRC" && !(newRegisters[execCommands[i].captured(2)] & (1 << newRegisters[execCommands[i].captured(3)])))
