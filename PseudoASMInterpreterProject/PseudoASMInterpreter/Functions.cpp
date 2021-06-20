@@ -43,13 +43,13 @@ void readFromTextFile(const QString filePath, QStringList * text)
     file.close();
 }
 
-void writeToFile(const QString filePath, const QStringList text)
+void writeToFile(const QString filePath, const QStringList * text)
 {
     QFile file(filePath);
     /// Если файл успешно открылся для записи
     if (file.open(QIODevice::WriteOnly))
     {
-        QListIterator<QString> textIterator(text);
+        QListIterator<QString> textIterator(*text);
         /// Записать данные из text в файл
         while (textIterator.hasNext())
         {
@@ -68,7 +68,7 @@ void writeToFile(const QString filePath, const QStringList text)
     file.close();
 }
 
-void interpretateProgram(QStringList * text, QHash<QString, int8_t> * registers, QList<int8_t> * ram)
+void interpretateProgram(const QStringList * text, QHash<QString, int8_t> * registers, QList<int8_t> * ram)
 {
     /// Создать копии памяти и регистров
     QHash<QString, int8_t> newRegisters = *registers;
@@ -211,14 +211,21 @@ int8_t convertArgFromStr(QString arg, const QHash<QString, int8_t> * registers, 
     return result;
 }
 
-void parseAndValidateText(QStringList * text, QList<QRegularExpressionMatch> * execCommands, QHash<QString, int> * labels)
+void parseAndValidateText(const QStringList * text, QList<QRegularExpressionMatch> * execCommands, QHash<QString, int> * labels)
 {
     /// Создадим кастомное исключение об ошибке, чтобы использовать при необходимости
     exception newException;
     /// Текущая строка
     QString curString;
-    /// Регулярное выражение
-    QRegularExpression regExp;
+    /// Регулярные выражения
+    QList<QRegularExpression> regularExpressions =
+        {QRegularExpression("^\\h*(ADD|OR|AND|SUB|EQU|ROL|ROR|SBRS|SBRC)\\h+(R[0-7])\\h*,\\h*(R[0-7])\\h*(?:;|$)"),
+         QRegularExpression("^\\h*(NEG)\\h+(R[0-7])\\h*(?:;|$)"),
+         QRegularExpression("^\\h*(MOVA)\\h+((?:[0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5]))\\h*,\\h*(R[0-7]|0(?:d\\d+|b[01]+|x[\\dA-F]+))\\h*(?:;|$)"),
+         QRegularExpression("^\\h*(MOVR)\\h+(R[0-7])\\h*,\\h*(R[0-7]|0(?:d\\d+|b[01]+|x[\\dA-F]+)|\\d+)\\h*(?:;|$)"),
+         QRegularExpression("^\\h*(JMP)\\h+([A-Za-z\\d]+)(?:;|$)"),
+         QRegularExpression("^\\h*([a-zA-Z\\d]+):\\h*(?:;|$)"),
+         QRegularExpression("^\\h*(?:;|$)")};
     /// Выделенная группа при сходстве строки с регулярным выражением
     QRegularExpressionMatch newMatch;
     /// Количество строк текста
@@ -227,14 +234,11 @@ void parseAndValidateText(QStringList * text, QList<QRegularExpressionMatch> * e
     /// Пока не рассмотрим все строки текста
     while (textIterator.hasNext())
     {
-        /// Рассмотреть текущую строку текста
-        curString = textIterator.next();
         /// Добавить рассматривающуюся строку в счетчик
         cnt++;
 
         /// Проверить строку на соответствие с регулярным выражением для команд ADD OR AND SUB EQU ROL ROR SBRS SBRC
-        regExp = QRegularExpression("^\\h*(ADD|OR|AND|SUB|EQU|ROL|ROR|SBRS|SBRC)\\h+(R[0-7])\\h*,\\h*(R[0-7])\\h*(?:;|$)");
-        newMatch = regExp.match(curString);
+        newMatch = regularExpressions[0].match(textIterator.peekNext());
         /// Если соответствует
         if (newMatch.hasMatch())
         {
@@ -245,8 +249,7 @@ void parseAndValidateText(QStringList * text, QList<QRegularExpressionMatch> * e
         }
 
         /// Проверить строку на соответствие с регулярным выражением для команды NEG
-        regExp = QRegularExpression("^\\h*(NEG)\\h+(R[0-7])\\h*(?:;|$)");
-        newMatch = regExp.match(curString);
+        newMatch = regularExpressions[1].match(textIterator.peekNext());
         /// Если соответствует
         if (newMatch.hasMatch())
         {
@@ -257,8 +260,7 @@ void parseAndValidateText(QStringList * text, QList<QRegularExpressionMatch> * e
         }
 
         /// Проверить строку на соответствие с регулярным выражением для команды MOVA
-        regExp = QRegularExpression("^\\h*(MOVA)\\h+((?:[0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5]))\\h*,\\h*(R[0-7]|0(?:d\\d+|b[01]+|x[\\dA-F]+))\\h*(?:;|$)");
-        newMatch = regExp.match(curString);
+        newMatch = regularExpressions[2].match(textIterator.peekNext());
         /// Если соответствует
         if (newMatch.hasMatch())
         {
@@ -269,8 +271,7 @@ void parseAndValidateText(QStringList * text, QList<QRegularExpressionMatch> * e
         }
 
         /// Проверить строку на соответствие с регулярным выражением для команды MOVR
-        regExp = QRegularExpression("^\\h*(MOVR)\\h+(R[0-7])\\h*,\\h*(R[0-7]|0(?:d\\d+|b[01]+|x[\\dA-F]+)|\\d+)\\h*(?:;|$)");
-        newMatch = regExp.match(curString);
+        newMatch = regularExpressions[3].match(textIterator.peekNext());
         /// Если соответствует
         if (newMatch.hasMatch())
         {
@@ -281,8 +282,7 @@ void parseAndValidateText(QStringList * text, QList<QRegularExpressionMatch> * e
         }
 
         /// Проверить строку на соответствие с регулярным выражением для команды JMP
-        regExp = QRegularExpression("^\\h*(JMP)\\h+([A-Za-z\\d]+)(?:;|$)");
-        newMatch = regExp.match(curString);
+        newMatch = regularExpressions[4].match(textIterator.peekNext());
         /// Если соответствует
         if (newMatch.hasMatch())
         {
@@ -293,8 +293,7 @@ void parseAndValidateText(QStringList * text, QList<QRegularExpressionMatch> * e
         }
 
         /// Проверить строку на соответствие с регулярным выражением для метки
-        regExp = QRegularExpression("^\\h*([a-zA-Z\\d]+):\\h*(?:;|$)");
-        newMatch = regExp.match(curString);
+        newMatch = regularExpressions[5].match(textIterator.peekNext());
         /// Если соответствует
         if (newMatch.hasMatch() && !labels->contains(newMatch.captured(1)))
         {
@@ -305,8 +304,7 @@ void parseAndValidateText(QStringList * text, QList<QRegularExpressionMatch> * e
         }
 
         /// Проверить строку на соответствие с регулярным выражением для пустой строки
-        regExp = QRegularExpression("^\\h*(?:;|$)");
-        newMatch = regExp.match(curString);
+        newMatch = regularExpressions[6].match(textIterator.peekNext());
         /// Если соответствует
         if (newMatch.hasMatch())
         {
@@ -318,14 +316,14 @@ void parseAndValidateText(QStringList * text, QList<QRegularExpressionMatch> * e
         newException = {ERR_PROG_SYNTAX, cnt};
         throw newException;
 
-END_STRING_PARSE:;
+END_STRING_PARSE:
+        /// Перейти к следующей строке
+        textIterator.next();
     }
 }
 
-QStringList registersToText(const QHash<QString, int8_t> registers, int numOfRegisters)
+void registersToText(const QHash<QString, int8_t> * registers, const int numOfRegisters, QStringList * registersText)
 {
-    /// Результирующий текст с состояниями регистров РОН
-    QStringList registersText;
     /// Новый ключ для таблицы registers
     QString newKey;
     /// Для каждого регистра РОН
@@ -333,24 +331,20 @@ QStringList registersToText(const QHash<QString, int8_t> registers, int numOfReg
     {
         /// Сгенерировать строку "Rn = *value*"
         newKey = "R" + QString::number(i);
-        registersText.append(newKey + " = " + QString::number(registers[newKey]));
+        registersText->append(newKey + " = " + QString::number(registers->value(newKey)));
     }
 
-    /// Вернуть сгенерированный текст
-    return registersText;
 }
 
-QStringList ramToText(const QList<int8_t> ram)
+void ramToText(const QList<int8_t> * ram, QStringList * ramText)
 {
-    /// Текст со значениями ячеек памяти RAM
-    QStringList ramText;
     /// Новая сгенерированная строка
     QString newString;
     /// Количество рассмотренных ячеек
     int cnt = 0;
     ///
     QString curValueStr;
-    QListIterator<int8_t> ramIterator(ram);
+    QListIterator<int8_t> ramIterator(*ram);
     /// Пока не рассмотрели все ячейки памяти RAM
     while (ramIterator.hasNext())
     {
@@ -378,7 +372,7 @@ QStringList ramToText(const QList<int8_t> ram)
         if (cnt % 16 == 0)
         {
             /// Добавить получившуюся строку в текст
-            ramText.append(newString);
+            ramText->append(newString);
             /// Отчистить текущую строку
             newString.clear();
         }
@@ -389,9 +383,6 @@ QStringList ramToText(const QList<int8_t> ram)
             newString += " ";
         }
     }
-
-    /// Вернуть сгенерированный текст
-    return ramText;
 }
 
 void initRam(QList<int8_t> * ram)
@@ -415,34 +406,41 @@ void initRegisters(QHash<QString, int8_t> * registers)
     }
 }
 
-void handleCustomException(exception exception, QString inputErrorFilePath, QString ProgramErrorFilePath)
+void handleCustomException(const exception * exception, const QString * inputErrorFilePath, const QString * ProgramErrorFilePath)
 {
-    if      (exception.errCode == ERR_INPUT_ARG_KEY)
+    if      (exception->errCode == ERR_INPUT_ARG_KEY)
     {
-        writeToFile(inputErrorFilePath, QStringList("On the command line, an option other than “-d” is passed as an argument."));
+        QStringList errMsg = QStringList("On the command line, an option other than “-d” is passed as an argument.");
+        writeToFile(*inputErrorFilePath, &errMsg);
     }
-    else if (exception.errCode == ERR_OPENING_FILE_READ)
+    else if (exception->errCode == ERR_OPENING_FILE_READ)
     {
-        writeToFile(inputErrorFilePath, QStringList("Error opening file for reading."));
+        QStringList errMsg = QStringList("Error opening file for reading.");
+        writeToFile(*inputErrorFilePath, &errMsg);
     }
-    else if (exception.errCode == ERR_PROG_EMPTY_PROG)
+    else if (exception->errCode == ERR_PROG_EMPTY_PROG)
     {
-        writeToFile(ProgramErrorFilePath, QStringList("The text of the program in which the search should be performed was not found."));
+        QStringList errMsg = QStringList("The text of the program in which the search should be performed was not found.");
+        writeToFile(*ProgramErrorFilePath, &errMsg);
     }
-    else if(exception.errCode ==  ERR_OPENING_FILE_WRITE)
+    else if(exception->errCode ==  ERR_OPENING_FILE_WRITE)
     {
-        writeToFile(inputErrorFilePath, QStringList("Error opening file for writing."));
+        QStringList errMsg = QStringList("Error opening file for writing.");
+        writeToFile(*inputErrorFilePath, &errMsg);
     }
-    else if (exception.errCode == ERR_PROG_SYNTAX)
+    else if (exception->errCode == ERR_PROG_SYNTAX)
     {
-        writeToFile(ProgramErrorFilePath, QStringList("Syntax error. Line number: " + QString::number(exception.numOfStr)));
+        QStringList errMsg = QStringList("Syntax error. Line number: " + QString::number(exception->numOfStr));
+        writeToFile(*ProgramErrorFilePath, &errMsg);
     }
-    else if (exception.errCode == ERR_PROG_INVALID_LABEL)
+    else if (exception->errCode == ERR_PROG_INVALID_LABEL)
     {
-        writeToFile(ProgramErrorFilePath, QStringList("An attempt was made to navigate to a non-existent label." ));
+        QStringList errMsg = QStringList("An attempt was made to navigate to a non-existent label.");
+        writeToFile(*ProgramErrorFilePath, &errMsg);
     }
-    else if (exception.errCode == ERR_INPUT_NUM_ARGS)
+    else if (exception->errCode == ERR_INPUT_NUM_ARGS)
     {
-        writeToFile(inputErrorFilePath, QStringList("Invalid number of input arguments."));
+        QStringList errMsg = QStringList("Invalid number of input arguments.");
+        writeToFile(*inputErrorFilePath, &errMsg);
     }
 }

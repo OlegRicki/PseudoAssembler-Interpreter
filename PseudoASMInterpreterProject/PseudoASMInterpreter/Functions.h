@@ -50,13 +50,13 @@ struct exception
   \param[in] filePath - полный путь к файлу
   \param[out] text - список строк, в который помещается содержимое файла
 */
-void readFromTextFile(QString filePath, QStringList * text);
+void readFromTextFile(const QString filePath, QStringList * text);
 
 /*!  Записывает содержимое списка строк text в файл, лежащего в filePath
   \param[in] filePath - полный путь к файлу
   \param[out] text - список строк, записываемый в файл
 */
-void writeToFile(const QString filePath, const QStringList text);
+void writeToFile(const QString filePath, const QStringList * text);
 
 /*!  Сверяет строки текста программы с регулярными выражениями и разбивает их на лексемы (название команды и аргументы, если они имеются).
     Метки, пустые строки и комментарии отбрасываются. При наличии несовпадений выдает сообщение о наличии синтаксической ошибки.
@@ -64,7 +64,7 @@ void writeToFile(const QString filePath, const QStringList text);
   \param[in|out] execCommands - список исполняемых команд с аргументами
   \param[in|out] labels - хэш-таблица, где ключ – название метки, а значение – номер в списке исполняемых команд исполняемой команды, стоящей в тексте программы перед меткой
 */
-void parseAndValidateText(QStringList * text, QList<QRegularExpressionMatch> * execCommands, QHash<QString, int> * labels);
+void parseAndValidateText(const QStringList * text, QList<QRegularExpressionMatch> * execCommands, QHash<QString, int> * labels);
 
 
 /*!  Интерпретирует текст программы text, написанной на языке псевдоассемблера, и возвращает
@@ -73,7 +73,7 @@ void parseAndValidateText(QStringList * text, QList<QRegularExpressionMatch> * e
   \param[in|out] registers - состояния регистров РОН
   \param[in|out] ram - список целых чисел - ячеек памяти RAM
 */
-void interpretateProgram(QStringList * text, QHash<QString, int8_t> * registers, QList<int8_t> * ram);
+void interpretateProgram(const QStringList * text, QHash<QString, int8_t> * registers, QList<int8_t> * ram);
 
 /*!  Конвертирует аргумент, представляющий собой константное значение, значение из регистра или значение из памяти RAM в целое число
  * \param arg - аргумент из текста программы в виде строки, который необходимо конвертировать в целое число
@@ -87,15 +87,15 @@ int8_t convertArgFromStr(QString arg, const QHash<QString, int8_t> * registers, 
     За регистры принимаются значения в registers по ключам R0, R1, ..., Rn, где n = numOfRegisters - 1
   \param[in] registers - состояния регистров РОН
   \param[in] numOfRegisters - количество регистров РОН
-  \return - текст вида R0 = registers[0]\nR1 = registers[1] и т.д.
+  \param[in|ot] registersText - текст вида R0 = registers[0]\nR1 = registers[1] и т.д.
 */
-QStringList registersToText(const QHash<QString, int8_t> registers, int numOfRegisters);
+void registersToText(const QHash<QString, int8_t> * registers, const int numOfRegisters, QStringList * registersText);
 
 /*!  Преобразовывает вектор целых чисел в текст - матрицу целых чисел в шестнадцатиричной системе счисления
   \param[in] ram - список целых чисел - ячеек памяти RAM
-  \returns - текст - матрица целых чисел в шестнадцатиричной системе счисления
+  \param[in|out] ramText - текст - матрица целых чисел в шестнадцатиричной системе счисления
 */
-QStringList ramToText(const QList<int8_t> ram);
+void ramToText(const QList<int8_t> * ram, QStringList * ramText);
 
 /*!  Инициализирует память RAM нулями. Количество инициализированных ячеек регулируется макросом NUM_OF_RAM_CELLS
   \param[in|out] ram - список целых чисел - ячеек памяти RAM
@@ -112,6 +112,6 @@ void initRegisters(QHash<QString, int8_t> * registers);
  * \param[in] inputErrorFilePath - путь к файлу, в который должно выводиться сообщение о некорректности входных данных
  * \param[in] ProgramErrorFilePath - путь к файлу, в который должно выводиться сообщение об ошибке в программе
  */
-void handleCustomException(exception exception, QString inputErrorFilePath, QString ProgramErrorFilePath);
+void handleCustomException(const exception * exception, const QString * inputErrorFilePath, const QString * ProgramErrorFilePath);
 
 #endif // FUNCTIONS_H

@@ -26,6 +26,12 @@ int main(int argc, char *argv[])
     /// Текст пользовательской программы на языке псевдоассемблера
     QStringList text;
 
+    /// Выходной результирующий текст
+    QStringList outputResultText;
+
+    /// Выходной текст памяти RAM
+    QStringList outputRamText;
+
     /// Список восьмиразрядных знаковых ячеек памяти RAM
     QList<int8_t> ram;
 
@@ -67,24 +73,28 @@ int main(int argc, char *argv[])
         /// Произвести интерпретацию программы, написанную на языке псевдоассемблера
         interpretateProgram(&text, &registers, &ram);
         /// Вывести результат интерпретации в файл result.txt по пути, заданным пользователем
-        writeToFile(outputFilePathResult, registersToText(registers, NUM_OF_REGISTERS));
+        registersToText(&registers, NUM_OF_REGISTERS, &outputResultText);
+        writeToFile(outputFilePathResult, &outputResultText);
         /// Если пользователь задал ключ "-d"
         if (argv[1] == QString("-d"))
         {
             /// Вывести состояние памяти RAM в файл RAM.txt по пути, заданным пользователем
-            writeToFile(outputFilePathRam, ramToText(ram));
+            ramToText(&ram, &outputRamText);
+            writeToFile(outputFilePathRam, &outputRamText);
         }
     }
 
     /// Поймать кастомное исключение
     catch(exception exception)
-    {     
-        handleCustomException(exception, a.applicationDirPath() + "\\inputError.txt", outputFilePathResult);
+    {
+        QString inputErrorFilePath = a.applicationDirPath() + "\\inputError.txt";
+        handleCustomException(&exception, &inputErrorFilePath, &outputFilePathResult);
     }
     /// Поймать исключение о переполнении
     catch(std::overflow_error &exception)
     {
-        writeToFile(outputFilePathResult, QStringList("Overflow error."));
+        QStringList errMsg = QStringList("Overflow error.");
+        writeToFile(outputFilePathResult, &errMsg);
     }
 
     return 0;
